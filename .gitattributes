@@ -1,0 +1,10 @@
+# Normalize line endings to LF in the repository for all text files.
+* text=auto eol=lf
+
+# Treat these as binary (no EOL conversion / no diff).
+*.npy binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.pptx binary
+*.pdf binary

@@ -1,0 +1,20 @@
+.env
+backend/.venv/
+frontend/node_modules/
+frontend/dist/
+storage/uploads/*
+storage/results/*
+!storage/uploads/.gitkeep
+!storage/results/.gitkeep
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# Internal planning/spec docs — kept local, not published
+GOAL.md
+
+# Local editor / tooling
+.claude/
+.vscode/
+.idea/
+.DS_Store
