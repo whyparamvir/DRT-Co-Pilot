@@ -63,10 +63,9 @@ npm run dev
 
 Open http://127.0.0.1:5173 and upload a spectrum. Sample files are in `storage/samples`.
 
-## Connecting an AI model (optional)
+## Connecting an AI model 
 
-A built-in offline assistant answers without any API key. To use a hosted model, open the
-model selector at the bottom of the chat, choose a provider (OpenAI, Anthropic, Gemini, or a
+To use a hosted model, open the model selector at the bottom of the chat, choose a provider (OpenAI, Anthropic, Gemini, or a
 custom OpenAI-compatible endpoint), paste your key and pick a model. Keys stay in the browser
 (in the tab by default, or in local storage if you choose to remember them) and are sent only
 to your local backend and the provider you selected.
