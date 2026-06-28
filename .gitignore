@@ -12,6 +12,7 @@ __pycache__/
 
 # Internal planning/spec docs — kept local, not published
 GOAL.md
+HANDOVER.md
 
 # Local editor / tooling
 .claude/

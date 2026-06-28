@@ -1,8 +1,8 @@
 """Adapter around pyDRTtools for running simple DRT analyses.
 
 The DRT computation itself is performed entirely by pyDRTtools, developed by
-Prof. Francesco Ciucci and the ciuccislab (https://github.com/ciuccislab/pyDRTtools,
-MIT License). This module only marshals data in/out of `EIS_object` and `simple_run`.
+Francesco Ciucci and co-workers (https://github.com/ciuccislab/pyDRTtools, MIT
+License). This module only marshals data in/out of `EIS_object` and `simple_run`.
 See the project README for the citations requested by the pyDRTtools authors.
 """
 

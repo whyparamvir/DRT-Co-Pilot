@@ -119,7 +119,7 @@ cd frontend && npm run build
 ## Credits
 
 DRT computation is performed by [pyDRTtools](https://github.com/ciuccislab/pyDRTtools),
-developed by Francesco Ciucci and his group and released under the MIT license. DRT Co-Pilot
+developed by Francesco Ciucci and co-workers, and released under the MIT license. DRT Co-Pilot
 is an independent interface and is not affiliated with or endorsed by the pyDRTtools authors.
 
 If you use this for academic work, cite the pyDRTtools papers relevant to the features you use:
