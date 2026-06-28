@@ -4,6 +4,7 @@ frontend/node_modules/
 frontend/dist/
 storage/uploads/*
 storage/results/*
+storage/*.log
 !storage/uploads/.gitkeep
 !storage/results/.gitkeep
 *.pyc

@@ -67,17 +67,48 @@ def _mock_answer(context: dict[str, Any]) -> ChatResponse:
 
 def _post_json(url: str, headers: dict[str, str], payload: dict[str, Any]) -> dict[str, Any]:
     data = json.dumps(payload).encode("utf-8")
-    req = request.Request(url, data=data, headers={**headers, "Content-Type": "application/json"}, method="POST")
+    request_headers = {
+        "User-Agent": "DRT-Co-Pilot/0.1 local-analysis-client",
+        "Accept": "application/json",
+        **headers,
+        "Content-Type": "application/json",
+    }
+    req = request.Request(url, data=data, headers=request_headers, method="POST")
     with request.urlopen(req, timeout=60) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+
+def _extract_openai_response_text(data: dict[str, Any]) -> str:
+    output_text = data.get("output_text")
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text
+
+    chunks: list[str] = []
+    for item in data.get("output", []) or []:
+        for content in item.get("content", []) or []:
+            text = content.get("text")
+            if isinstance(text, str):
+                chunks.append(text)
+    return "".join(chunks)
 
 
 def _openai_answer(context, message, history, *, api_key, model, base_url, provider="openai") -> ChatResponse:
     api_key = api_key or os.getenv("OPENAI_API_KEY")
     if not api_key:
         return ChatResponse(provider=provider, answer="No OpenAI API key was provided. Connect a model in the app or set OPENAI_API_KEY.")
-    model = model or os.getenv("AI_MODEL") or "gpt-4.1-mini"
+    model = model or os.getenv("AI_MODEL") or "gpt-5.4-mini"
     root = (base_url or "https://api.openai.com/v1").rstrip("/")
+
+    if provider == "openai" and root == "https://api.openai.com/v1":
+        payload = {
+            "model": model,
+            "instructions": SYSTEM_PROMPT,
+            "input": _prompt(context, message, history),
+        }
+        data = _post_json(f"{root}/responses", {"Authorization": f"Bearer {api_key}"}, payload)
+        answer = _extract_openai_response_text(data)
+        return ChatResponse(provider=provider, answer=answer or "The model returned no text.")
+
     # Chat Completions is the most widely supported surface across OpenAI-compatible servers.
     payload = {
         "model": model,
@@ -98,7 +129,7 @@ def _gemini_answer(context, message, history, *, api_key, model) -> ChatResponse
     api_key = api_key or os.getenv("GEMINI_API_KEY")
     if not api_key:
         return ChatResponse(provider="gemini", answer="No Gemini API key was provided. Connect a model in the app or set GEMINI_API_KEY.")
-    model = model or os.getenv("AI_MODEL") or "gemini-1.5-flash"
+    model = model or os.getenv("AI_MODEL") or "gemini-3.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     data = _post_json(url, {}, {"contents": [{"parts": [{"text": _prompt(context, message, history)}]}]})
     candidates = data.get("candidates", [])
@@ -112,7 +143,7 @@ def _anthropic_answer(context, message, history, *, api_key, model) -> ChatRespo
     api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         return ChatResponse(provider="anthropic", answer="No Anthropic API key was provided. Connect a model in the app or set ANTHROPIC_API_KEY.")
-    model = model or os.getenv("AI_MODEL") or "claude-3-5-haiku-latest"
+    model = model or os.getenv("AI_MODEL") or "claude-sonnet-4-6"
     headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
     payload = {
         "model": model,
@@ -151,6 +182,15 @@ def generate_answer(
         return _mock_answer(context)
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
+        if exc.code == 403 and "1010" in detail and provider == "openai-compatible":
+            return ChatResponse(
+                provider=provider,
+                answer=(
+                    "The provider blocked this HTTP client with a 403 / 1010 response. "
+                    "I added a browser-like request header; remove and reconnect the model, then try again. "
+                    "If it still fails, use another provider such as NVIDIA NIM or Gemini for testing."
+                ),
+            )
         return ChatResponse(provider=provider, answer=f"The AI provider request failed ({exc.code}): {detail[:500]}")
     except Exception as exc:
         return ChatResponse(provider=provider, answer=f"The AI provider failed locally: {exc}")
